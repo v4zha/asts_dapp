@@ -1,0 +1,41 @@
+version : '3'
+services : 
+  nginx:
+    image : "nginx:latest"
+    container_name: "nginx"
+    restart: always
+    networks:
+      - latency-network
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - ast-service
+    ports:
+      - "80:80"
+  ast-db:
+    image : "mongo:latest"
+    container_name: "ast-db"
+    restart: always
+    ports: 
+      - "27017:27017"
+    env_file: 
+      - ./mongo.env
+    networks:
+      - latency-network
+  pi-service:
+    build:
+      context: .
+      dockerfile: DockerFile
+    depends_on:
+        - ast-db
+    container_name: "ast-service"
+    restart: always
+    ports:
+      - 8000
+    env_file:
+      - ./api.env
+    networks:
+      - latency-network
+networks:
+  latency-network:
+    driver: bridge
